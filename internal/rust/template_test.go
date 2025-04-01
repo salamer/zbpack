@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/salamer/zbpack/internal/rust"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeabur/zbpack/internal/rust"
 )
 
 func TestGenerateDockerfile_Assets(t *testing.T) {

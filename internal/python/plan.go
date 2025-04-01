@@ -636,7 +636,7 @@ func determineDefaultStartupFunction(ctx *pythonPlanContext) string {
 	}
 
 	command := strings.Join(commandSegment, " ")
-	return fmt.Sprintf("_startup() { %s; }; ", command)
+	return command
 }
 
 func determineStartCmd(ctx *pythonPlanContext) string {

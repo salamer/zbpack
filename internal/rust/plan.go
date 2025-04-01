@@ -124,11 +124,18 @@ func needOpenssl(source afero.Fs) bool {
 }
 
 func getBuildCommand(ctx *rustPlanContext) string {
-	return plan.Cast(ctx.Config.Get(plan.ConfigBuildCommand), cast.ToStringE).TakeOr("")
+
+	return "cargo build --release"
 }
 
 func getStartCommand(ctx *rustPlanContext) string {
-	return plan.Cast(ctx.Config.Get(plan.ConfigStartCommand), cast.ToStringE).TakeOr("")
+	cargoInfo, err := parseCargoTOML(ctx.SubmoduleName)
+	if err != nil {
+		return ""
+	}
+
+	filename := cargoInfo.Package.Name
+	return "./target/release/" + filename
 }
 
 func getPreStartCommand(ctx *rustPlanContext) string {
