@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/salamer/zbpack/internal/utils"
 	"github.com/spf13/afero"
-	"github.com/zeabur/zbpack/internal/utils"
 )
 
 // PackageJSONEngine is the structure of `package.json`'s `engines` field.

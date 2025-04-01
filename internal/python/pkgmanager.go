@@ -3,7 +3,7 @@ package python
 import (
 	"strings"
 
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 func getPmInitCmd(pm types.PythonPackageManager) string {

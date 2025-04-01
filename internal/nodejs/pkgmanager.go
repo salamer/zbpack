@@ -3,7 +3,7 @@ package nodejs
 import (
 	"fmt"
 
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 // PackageManager defines an interface for common package management operations.

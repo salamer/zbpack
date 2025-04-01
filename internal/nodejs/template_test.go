@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
+	"github.com/salamer/zbpack/internal/nodejs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/zeabur/zbpack/internal/nodejs"
 )
 
 func TestMain(m *testing.M) {

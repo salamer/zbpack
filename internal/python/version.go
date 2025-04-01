@@ -1,7 +1,7 @@
 package python
 
 import (
-	"github.com/zeabur/zbpack/internal/utils"
+	"github.com/salamer/zbpack/internal/utils"
 )
 
 const defaultPython3Version = "3.10"
