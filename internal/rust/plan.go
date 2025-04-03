@@ -135,6 +135,8 @@ func getStartCommand(ctx *rustPlanContext) string {
 		return ""
 	}
 
+	log.Println("iohweioqwhioehqwiohioeqwhioe")
+
 	filename := cargoInfo.Package.Name
 	return "./target/release/" + filename
 }
