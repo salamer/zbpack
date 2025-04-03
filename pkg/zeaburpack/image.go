@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/samber/lo"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type buildImageOptions struct {

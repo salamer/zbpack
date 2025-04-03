@@ -4,7 +4,7 @@ package plan
 import (
 	"github.com/spf13/afero"
 
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 // Identifier identifies the plan type and how to get the plan meta.

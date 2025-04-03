@@ -3,7 +3,7 @@ package nix_test
 import (
 	"testing"
 
-	"github.com/zeabur/zbpack/internal/nix"
+	"github.com/salamer/zbpack/internal/nix"
 )
 
 func TestFindPossibleNixDockerPackage(t *testing.T) {

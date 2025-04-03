@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/salamer/zbpack/internal/source"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/zeabur/zbpack/internal/source"
 )
 
 func getGithubToken(t *testing.T) *string {

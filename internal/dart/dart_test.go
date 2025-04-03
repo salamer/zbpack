@@ -3,8 +3,8 @@ package dart_test
 import (
 	"testing"
 
+	"github.com/salamer/zbpack/internal/dart"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeabur/zbpack/internal/dart"
 )
 
 func TestGenerateDockerfileStatic(t *testing.T) {

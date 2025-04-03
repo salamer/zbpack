@@ -8,10 +8,10 @@ import (
 
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/moznion/go-optional"
+	"github.com/salamer/zbpack/pkg/plan"
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeabur/zbpack/pkg/plan"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 func TestMain(m *testing.M) {
@@ -991,84 +991,6 @@ func TestHasExplicitDependency_Unknown(t *testing.T) {
 
 	assert.False(t, HasExplicitDependency(ctx, "flask"))
 	assert.False(t, HasExplicitDependency(ctx, "bar"))
-}
-
-func TestDetermineStreamlitEntry_ByFile(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "streamlit_app.py", []byte(`import streamlit as st
-x = st.slider("Select a value")
-st.write(x, "squared is", x * x)`), 0o644)
-	_ = afero.WriteFile(fs, "requirements.txt", []byte("streamlit"), 0o644)
-
-	config := plan.NewProjectConfigurationFromFs(fs, "")
-
-	ctx := &pythonPlanContext{
-		Src:            fs,
-		Config:         config,
-		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
-	}
-
-	assert.Equal(t, "streamlit_app.py", determineStreamlitEntry(ctx))
-}
-
-func TestDetermineStreamlitEntry_ByConfig(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "zeabur_streamlit_demo.py", []byte(`import streamlit as st
-x = st.slider("Select a value")
-st.write(x, "squared is", x * x)`), 0o644)
-	_ = afero.WriteFile(fs, "requirements.txt", []byte("streamlit"), 0o644)
-	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{"streamlit": {"entry": "zeabur_streamlit_demo.py"}}`), 0o644)
-
-	config := plan.NewProjectConfigurationFromFs(fs, "")
-
-	ctx := &pythonPlanContext{
-		Src:            fs,
-		Config:         config,
-		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
-	}
-
-	assert.Equal(t, "zeabur_streamlit_demo.py", determineStreamlitEntry(ctx))
-}
-
-func TestDetermineStreamlitEntry_ConfigPrecedeConvention(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "zeabur_streamlit_demo.py", []byte(`import streamlit as st
-x = st.slider("Select a value")
-st.write(x, "squared is", x * x)`), 0o644)
-	_ = afero.WriteFile(fs, "app.py", []byte(`print('not me')`), 0o644)
-	_ = afero.WriteFile(fs, "requirements.txt", []byte("streamlit"), 0o644)
-	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{"streamlit": {"entry": "zeabur_streamlit_demo.py"}}`), 0o644)
-
-	config := plan.NewProjectConfigurationFromFs(fs, "")
-
-	ctx := &pythonPlanContext{
-		Src:            fs,
-		Config:         config,
-		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
-	}
-
-	assert.Equal(t, "zeabur_streamlit_demo.py", determineStreamlitEntry(ctx))
-}
-
-func TestDetermineStreamlitEntry_Cache(t *testing.T) {
-	fs := afero.NewMemMapFs()
-	_ = afero.WriteFile(fs, "zeabur_streamlit_demo.py", []byte(`import streamlit as st
-x = st.slider("Select a value")
-st.write(x, "squared is", x * x)`), 0o644)
-	_ = afero.WriteFile(fs, "app.py", []byte(`print('not me')`), 0o644)
-	_ = afero.WriteFile(fs, "requirements.txt", []byte("streamlit"), 0o644)
-	_ = afero.WriteFile(fs, "zbpack.json", []byte(`{"streamlit": {"entry": "zeabur_streamlit_demo.py"}}`), 0o644)
-
-	config := plan.NewProjectConfigurationFromFs(fs, "")
-
-	ctx := &pythonPlanContext{
-		Src:            fs,
-		Config:         config,
-		PackageManager: optional.Some(types.PythonPackageManagerUnknown),
-	}
-
-	assert.Equal(t, "zeabur_streamlit_demo.py", determineStreamlitEntry(ctx))
-	assert.Equal(t, "zeabur_streamlit_demo.py", ctx.StreamlitEntry.Unwrap())
 }
 
 func TestDetermineWsgi(t *testing.T) {

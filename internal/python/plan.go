@@ -2,22 +2,20 @@
 package python
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"log"
 	"path/filepath"
 	"regexp"
-	"slices"
 	"strings"
 
 	"github.com/moznion/go-optional"
+	"github.com/salamer/zbpack/internal/utils"
+	"github.com/salamer/zbpack/pkg/plan"
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/samber/lo"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
-	"github.com/zeabur/zbpack/internal/utils"
-	"github.com/zeabur/zbpack/pkg/plan"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 type pythonPlanContext struct {
@@ -118,7 +116,7 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 		return et.Unwrap()
 	}
 
-	for _, file := range []string{"main.py", "app.py", "manage.py", "server.py", "app/__init__.py"} {
+	for _, file := range []string{"main.py", "app.py", "manage.py", "server.py", "app/__init__.py", "index.py"} {
 		if utils.HasFile(src, file) {
 			*et = optional.Some(file)
 			return et.Unwrap()
@@ -509,20 +507,20 @@ func determineInstallCmd(ctx *pythonPlanContext) string {
 	}
 
 	if cmd := getPmInitCmd(pm); cmd != "" {
-		commands = append(commands, "RUN "+cmd)
+		commands = append(commands, cmd)
 	}
 	if cmd := getPmAddCmd(pm, depToInstall...); cmd != "" {
-		commands = append(commands, "RUN "+cmd)
+		commands = append(commands, cmd)
 	}
 	if cmd := getPmInstallCmd(pm); cmd != "" {
-		commands = append(commands, "RUN "+cmd)
+		commands = append(commands, cmd)
 	}
 
 	command := strings.Join(commands, "\n")
 	if command != "" {
 		return command
 	}
-	return "RUN echo \"skip install\""
+	return ""
 }
 
 func determineAptDependencies(ctx *pythonPlanContext) []string {
@@ -610,18 +608,13 @@ func determineDefaultStartupFunction(ctx *pythonPlanContext) string {
 		commandSegment = append(commandSegment, prefix)
 	}
 
-	if streamlitEntry := determineStreamlitEntry(ctx); streamlitEntry != "" {
-		commandSegment = append(commandSegment, "streamlit run", streamlitEntry, "--server.port=8080", "--server.address=0.0.0.0")
-	} else if wsgi != "" {
+	if wsgi != "" {
 		wsgilistenedPort := "8080"
 
 		// The WSGI application should listen at 8000
 		// for reverse proxying by Nginx if we need to
 		// host static files with Nginx. The "8000" is
 		// configured by our nginx.conf in `python.go`.
-		if staticPath.NginxEnabled() {
-			wsgilistenedPort = "8000"
-		}
 
 		if framework == types.PythonFrameworkFastapi {
 			commandSegment = append(commandSegment, "uvicorn", wsgi, "--host 0.0.0.0", "--port "+wsgilistenedPort)
@@ -636,7 +629,7 @@ func determineDefaultStartupFunction(ctx *pythonPlanContext) string {
 	}
 
 	command := strings.Join(commandSegment, " ")
-	return fmt.Sprintf("_startup() { %s; }; ", command)
+	return command
 }
 
 func determineStartCmd(ctx *pythonPlanContext) string {
@@ -653,7 +646,7 @@ func determineStartCmd(ctx *pythonPlanContext) string {
 	}
 
 	// Call default startup function directly
-	return startupFunction + "_startup"
+	return startupFunction
 }
 
 // determinePythonVersion Determine Python Version
@@ -762,27 +755,27 @@ func determineBuildCmd(ctx *pythonPlanContext) string {
 	framework := DetermineFramework(ctx)
 
 	if postInstallCmd := getPmPostInstallCmd(packageManager); postInstallCmd != "" {
-		commands += "RUN " + postInstallCmd + "\n"
+		commands += postInstallCmd + "\n"
 	}
 
 	if buildCommand, err := plan.Cast(ctx.Config.Get(plan.ConfigBuildCommand), cast.ToStringE).Take(); err == nil {
-		commands += "RUN " + buildCommand + "\n"
+		commands += buildCommand + "\n"
 	} else {
 		if content, err := utils.ReadFileToUTF8(ctx.Src, "package.json"); err == nil {
 			if strings.Contains(string(content), "\"build\":") {
 				// for example, "build": "vite build"
-				commands += "RUN npm install && npm run build\n"
+				commands += "npm install && npm run build\n"
 			}
 		}
 
 		if framework == types.PythonFrameworkReflex {
 			switch packageManager {
 			case types.PythonPackageManagerPoetry:
-				commands += `RUN poetry run reflex init
-RUN poetry run reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web`
+				commands += `poetry run reflex init
+poetry run reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web`
 			default:
-				commands += `RUN reflex init
-RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web`
+				commands += `reflex init
+reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf .web`
 			}
 		}
 
@@ -792,62 +785,15 @@ RUN reflex export --frontend-only --no-zip && mv .web/_static/* /srv/ && rm -rf 
 				prefix += " " // ex. poetry run
 			}
 			// We need to collect static files if we are using Django.
-			commands += "RUN " + prefix + "python manage.py collectstatic --noinput\n"
+			commands += prefix + "python manage.py collectstatic --noinput\n"
 		}
 
 		if determinePlaywright(ctx) {
-			commands += "RUN playwright install\n"
+			commands += "playwright install\n"
 		}
-	}
-
-	if slices.Contains(determineAptDependencies(ctx), "imagemagick") {
-		// credit: https://discord.com/channels/1060209568820494336/1257750217147809903/1258312298674786386
-		commands += `ENV IMAGEMAGICK_BINARY=/usr/bin/convert
-RUN echo '<?xml version="1.0" encoding="UTF-8"?>' > /etc/ImageMagick-6/policy.xml && \
-    echo '<policymap>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="resource" name="temporary-path" value="/tmp"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="resource" name="memory" value="2GiB"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="resource" name="map" value="4GiB"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="resource" name="width" value="16KP"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="resource" name="height" value="16KP"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="resource" name="area" value="128MP"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="resource" name="disk" value="16GiB"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="resource" name="thread" value="4"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="resource" name="throttle" value="0"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="resource" name="time" value="3600"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="path" rights="read|write" pattern="@*"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="coder" rights="read|write" pattern="*"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '  <policy domain="delegate" rights="read|write" pattern="*"/>' >> /etc/ImageMagick-6/policy.xml && \
-    echo '</policymap>' >> /etc/ImageMagick-6/policy.xml`
 	}
 
 	return strings.TrimSpace(commands)
-}
-
-func determineStreamlitEntry(ctx *pythonPlanContext) string {
-	src := ctx.Src
-	config := ctx.Config
-	se := &ctx.StreamlitEntry
-
-	if entry, err := se.Take(); err == nil {
-		return entry
-	}
-
-	if streamlitEntry := plan.Cast(config.Get(ConfigStreamlitEntry), cast.ToStringE); streamlitEntry.IsSome() {
-		*se = optional.Some(streamlitEntry.Unwrap())
-		return se.Unwrap()
-	}
-
-	for _, file := range []string{"app.py", "main.py", "streamlit_app.py"} {
-		content, err := utils.ReadFileToUTF8(src, file)
-		if err == nil && bytes.Contains(content, []byte("import streamlit")) {
-			*se = optional.Some(file)
-			return se.Unwrap()
-		}
-	}
-
-	*se = optional.Some("")
-	return se.Unwrap()
 }
 
 // GetMetaOptions is the options for GetMeta.

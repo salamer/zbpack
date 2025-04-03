@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 func TestGenerateDockerFile_Valid(t *testing.T) {

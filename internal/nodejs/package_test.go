@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/salamer/zbpack/internal/nodejs"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeabur/zbpack/internal/nodejs"
 )
 
 func TestNewPackageJson(t *testing.T) {

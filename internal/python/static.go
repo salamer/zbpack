@@ -3,7 +3,7 @@ package python
 import (
 	"strconv"
 
-	"github.com/zeabur/zbpack/pkg/types"
+	"github.com/salamer/zbpack/pkg/types"
 )
 
 // StaticFlag is the static flag of a Python project.

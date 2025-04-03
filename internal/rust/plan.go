@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/salamer/zbpack/internal/utils"
+	"github.com/salamer/zbpack/pkg/plan"
+	"github.com/salamer/zbpack/pkg/types"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
-	"github.com/zeabur/zbpack/internal/utils"
-	"github.com/zeabur/zbpack/pkg/plan"
-	"github.com/zeabur/zbpack/pkg/types"
 )
 
 // ConfigRustEntry is the key for the binary entry name of the application.
@@ -107,7 +107,7 @@ func getAssets(ctx *rustPlanContext) []string {
 
 // needOpenssl checks if the project needs openssl.
 func needOpenssl(source afero.Fs) bool {
-	for _, file := range []string{"Cargo.toml", "Cargo.lock"} {
+	for _, file := range []string{"Cargo.toml"} {
 		file, err := utils.ReadFileToUTF8(source, file)
 		if err != nil {
 			if !os.IsNotExist(err) {
@@ -124,11 +124,18 @@ func needOpenssl(source afero.Fs) bool {
 }
 
 func getBuildCommand(ctx *rustPlanContext) string {
-	return plan.Cast(ctx.Config.Get(plan.ConfigBuildCommand), cast.ToStringE).TakeOr("")
+
+	return "cargo build --release"
 }
 
 func getStartCommand(ctx *rustPlanContext) string {
-	return plan.Cast(ctx.Config.Get(plan.ConfigStartCommand), cast.ToStringE).TakeOr("")
+	cargoInfo, err := parseCargoTOML(ctx.Src, "Cargo.toml")
+	if err != nil {
+		return ""
+	}
+
+	filename := cargoInfo.Package.Name
+	return "./target/release/" + filename
 }
 
 func getPreStartCommand(ctx *rustPlanContext) string {

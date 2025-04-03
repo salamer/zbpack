@@ -3,8 +3,8 @@ package php
 import (
 	"encoding/json"
 
+	"github.com/salamer/zbpack/internal/utils"
 	"github.com/spf13/afero"
-	"github.com/zeabur/zbpack/internal/utils"
 )
 
 type composerJSONSchema struct {
