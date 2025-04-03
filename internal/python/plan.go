@@ -116,7 +116,7 @@ func DetermineEntry(ctx *pythonPlanContext) string {
 		return et.Unwrap()
 	}
 
-	for _, file := range []string{"main.py", "app.py", "manage.py", "server.py", "app/__init__.py"} {
+	for _, file := range []string{"main.py", "app.py", "manage.py", "server.py", "app/__init__.py", "index.py"} {
 		if utils.HasFile(src, file) {
 			*et = optional.Some(file)
 			return et.Unwrap()
