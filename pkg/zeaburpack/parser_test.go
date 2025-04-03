@@ -3,9 +3,9 @@ package zeaburpack_test
 import (
 	"testing"
 
+	"github.com/salamer/zbpack/pkg/zeaburpack"
 	"github.com/samber/mo"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeabur/zbpack/pkg/zeaburpack"
 )
 
 func TestParseFrom(t *testing.T) {

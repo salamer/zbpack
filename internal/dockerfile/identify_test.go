@@ -3,9 +3,9 @@ package dockerfile_test
 import (
 	"testing"
 
+	"github.com/salamer/zbpack/internal/dockerfile"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeabur/zbpack/internal/dockerfile"
 )
 
 func TestMatch(t *testing.T) {

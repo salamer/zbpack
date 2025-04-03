@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/salamer/zbpack/internal/java"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeabur/zbpack/internal/java"
 )
 
 func TestDetermineTargetExt_Unsupported(t *testing.T) {

@@ -3,8 +3,8 @@ package utils_test
 import (
 	"testing"
 
+	"github.com/salamer/zbpack/internal/utils"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeabur/zbpack/internal/utils"
 )
 
 func TestSplitVersion_Empty(t *testing.T) {
