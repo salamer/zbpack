@@ -150,16 +150,16 @@ func DeterminePackageManagerUncached(ctx *nodePlanContext) PackageManager {
 		return Bun{}
 	}
 
+	if p.Engines.Npm != "" {
+		return Npm{MajorVersion: findContraintVersion(p.Engines.Npm, NpmLatestMajorVersion, NpmOldestMajorVersion)}
+	}
+
 	if p.Engines.Yarn != "" {
 		return Yarn{MajorVersion: findContraintVersion(p.Engines.Yarn, YarnLatestMajorVersions, YarnOldestMajorVersion)}
 	}
 
 	if p.Engines.Pnpm != "" {
 		return Pnpm{MajorVersion: findContraintVersion(p.Engines.Pnpm, PnpmLatestMajorVersion, PnpmOldestMajorVersion)}
-	}
-
-	if p.Engines.Npm != "" {
-		return Npm{MajorVersion: findContraintVersion(p.Engines.Npm, NpmLatestMajorVersion, NpmOldestMajorVersion)}
 	}
 
 	// Check lockfiles.
@@ -629,26 +629,26 @@ func GetInitCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.InitCmd
 	var cmds []string
 
-	needPlaywright := DetermineNeedPlaywright(ctx)
-	if needPlaywright {
-		cmds = append(
-			cmds,
-			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2 && rm -rf /var/lib/apt/lists/*",
-		)
-	}
+	// needPlaywright := DetermineNeedPlaywright(ctx)
+	// if needPlaywright {
+	// 	cmds = append(
+	// 		cmds,
+	// 		"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdbus-1-3 libdrm2 libxkbcommon-x11-0 libxcomposite-dev libxdamage1 libxfixes-dev libxrandr2 libgbm-dev libasound2 && rm -rf /var/lib/apt/lists/*",
+	// 	)
+	// }
 
-	needPuppeteer := DetermineNeedPuppeteer(ctx)
-	if needPuppeteer {
-		cmds = append(
-			cmds,
-			"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1 && rm -rf /var/lib/apt/lists/*",
-			"ENV PUPPETEER_CACHE_DIR=/src/.cache/puppeteer",
-		)
-	}
+	// needPuppeteer := DetermineNeedPuppeteer(ctx)
+	// if needPuppeteer {
+	// 	cmds = append(
+	// 		cmds,
+	// 		"RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgbm1 libasound2 libpangocairo-1.0-0 libxss1 libgtk-3-0 libxshmfence1 libglu1 && rm -rf /var/lib/apt/lists/*",
+	// 		"ENV PUPPETEER_CACHE_DIR=/src/.cache/puppeteer",
+	// 	)
+	// }
 
 	pkgManager := DeterminePackageManager(ctx)
 	initCommand := pkgManager.GetInitCommand()
-	cmds = append(cmds, "RUN "+initCommand)
+	cmds = append(cmds, initCommand)
 
 	*cmd = optional.Some(strings.Join(cmds, "\n"))
 	return cmd.Unwrap()
@@ -657,7 +657,6 @@ func GetInitCmd(ctx *nodePlanContext) string {
 // GetInstallCmd gets the installation command of the Node.js app.
 func GetInstallCmd(ctx *nodePlanContext) string {
 	cmd := &ctx.InstallCmd
-	_, reldir := ctx.GetAppSource()
 
 	if installCmd, err := cmd.Take(); err == nil {
 		return installCmd
@@ -669,15 +668,11 @@ func GetInstallCmd(ctx *nodePlanContext) string {
 
 	var cmds []string
 
-	if reldir != "" {
-		cmds = append(cmds, "WORKDIR /src/"+reldir)
-	}
-
 	if installCmd, err := installCmdConf.Take(); err == nil {
-		cmds = append(cmds, "RUN "+installCmd)
+		cmds = append(cmds, installCmd)
 	} else {
 		installDependenciesCommand := pkgManager.GetInstallProjectDependenciesCommand()
-		cmds = append(cmds, "RUN "+installDependenciesCommand)
+		cmds = append(cmds, installDependenciesCommand)
 	}
 
 	*cmd = optional.Some(strings.Join(cmds, "\n"))
