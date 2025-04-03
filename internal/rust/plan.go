@@ -1,7 +1,6 @@
 package rust
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -132,7 +131,7 @@ func getBuildCommand(ctx *rustPlanContext) string {
 func getStartCommand(ctx *rustPlanContext) string {
 	cargoInfo, err := parseCargoTOML(ctx.SubmoduleName)
 	if err != nil {
-		fmt.Println("Error parsing Cargo.toml:", err)
+		log.Println("Error parsing Cargo.toml:", err)
 		return ""
 	}
 
