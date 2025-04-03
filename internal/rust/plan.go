@@ -108,7 +108,7 @@ func getAssets(ctx *rustPlanContext) []string {
 
 // needOpenssl checks if the project needs openssl.
 func needOpenssl(source afero.Fs) bool {
-	for _, file := range []string{"Cargo.toml", "Cargo.lock"} {
+	for _, file := range []string{"Cargo.toml"} {
 		file, err := utils.ReadFileToUTF8(source, file)
 		if err != nil {
 			if !os.IsNotExist(err) {
