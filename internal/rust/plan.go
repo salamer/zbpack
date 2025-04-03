@@ -129,13 +129,10 @@ func getBuildCommand(ctx *rustPlanContext) string {
 }
 
 func getStartCommand(ctx *rustPlanContext) string {
-	cargoInfo, err := parseCargoTOML(ctx.SubmoduleName)
+	cargoInfo, err := parseCargoTOML(ctx.Src, "Cargo.toml")
 	if err != nil {
-		log.Println("Error parsing Cargo.toml:", err)
-		return "qwewqjioejpoqwjp" + err.Error()
+		return ""
 	}
-
-	log.Println("iohweioqwhioehqwiohioeqwhioe")
 
 	filename := cargoInfo.Package.Name
 	return "./target/release/" + filename

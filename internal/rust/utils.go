@@ -3,10 +3,11 @@ package rust
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/salamer/zbpack/internal/utils"
+	"github.com/spf13/afero"
 )
 
 func ReadFile(path string) (string, error) {
@@ -19,8 +20,8 @@ func ReadFile(path string) (string, error) {
 	return strings.ReplaceAll(string(data), "\r\n", "\n"), nil
 }
 
-func ReadTOML(path string, v interface{}) error {
-	data, err := ReadFile(path)
+func ReadTOML(fs afero.Fs, path string, v interface{}) error {
+	data, err := utils.ReadFileToUTF8(fs, path)
 	if err != nil {
 		return err
 	}
@@ -30,13 +31,11 @@ func ReadTOML(path string, v interface{}) error {
 
 // parseCargoTOML parses a Cargo.toml file
 func parseCargoTOML(
-	dirPath string,
+	fs afero.Fs, path string,
 ) (*CargoTOML, error) {
 	var cargoToml *CargoTOML
 
-	path := filepath.Join(dirPath, "Cargo.toml")
-
-	if err := ReadTOML(path, &cargoToml); err != nil {
+	if err := ReadTOML(fs, path, &cargoToml); err != nil {
 		return nil, err
 	}
 
