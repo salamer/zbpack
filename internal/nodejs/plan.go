@@ -179,7 +179,7 @@ func DeterminePackageManagerUncached(ctx *nodePlanContext) PackageManager {
 		return Npm{}
 	}
 
-	return UnspecifiedPackageManager{PackageManager: Yarn{}}
+	return UnspecifiedPackageManager{PackageManager: Npm{}}
 }
 
 func findContraintVersion(engineVersion string, latest uint64, oldest uint64) uint64 {
