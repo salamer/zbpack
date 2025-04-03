@@ -132,7 +132,7 @@ func getStartCommand(ctx *rustPlanContext) string {
 	cargoInfo, err := parseCargoTOML(ctx.SubmoduleName)
 	if err != nil {
 		log.Println("Error parsing Cargo.toml:", err)
-		return ""
+		return "qwewqjioejpoqwjp" + err.Error()
 	}
 
 	log.Println("iohweioqwhioehqwiohioeqwhioe")
