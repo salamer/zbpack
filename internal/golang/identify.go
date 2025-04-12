@@ -20,7 +20,7 @@ func (i *identify) PlanType() types.PlanType {
 }
 
 func (i *identify) Match(fs afero.Fs) bool {
-	return utils.HasFile(fs, "go.mod")
+	return utils.HasFile(fs, "go.mod") || utils.HasFile(fs, "main.go")
 }
 
 func (i *identify) PlanMeta(options plan.NewPlannerOptions) types.PlanMeta {

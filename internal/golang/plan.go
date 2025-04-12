@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/moznion/go-optional"
 	"github.com/salamer/zbpack/internal/utils"
@@ -107,9 +108,33 @@ func getEntry(ctx *goPlanContext) string {
 
 	// if there is no main.go in root directory, we assume it's a monorepo project.
 	// in a general monorepo Go repo of service "user-service", the entry point might be `./cmd/user-service/main.go`
-	entry := path.Join("cmd", ctx.SubmoduleName, "main.go")
+	entry := path.Join("cmd", "main.go")
+
 	if utils.HasFile(ctx.Src, entry) {
 		*ent = optional.Some(entry)
+		return ent.Unwrap()
+	}
+
+	entryFolder := ""
+	afero.Walk(ctx.Src, ".", func(path string, info os.FileInfo, err error) error {
+		if strings.HasSuffix(path, "main.go") {
+			if info.IsDir() {
+				entryFolder = path
+			} else {
+				p := strings.TrimSuffix(path, "main.go")
+				p = strings.TrimPrefix(p, "./")
+				p = strings.TrimPrefix(p, "/")
+				p = strings.TrimSuffix(p, "/")
+				entryFolder = p
+				*ent = optional.Some(p)
+				return nil
+			}
+		}
+		return nil
+	})
+
+	if entryFolder != "" {
+		*ent = optional.Some(entryFolder)
 		return ent.Unwrap()
 	}
 
